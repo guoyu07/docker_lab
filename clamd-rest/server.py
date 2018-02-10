@@ -2,6 +2,9 @@ import os, socket, json, pdb
 from flask import Flask, request
 from clamdClient import clamClient, ConnectionError
 
+from gevent.monkey import patch_all
+patch_all()
+
 app = Flask(__name__)
 
 HOST = "127.0.0.1"
