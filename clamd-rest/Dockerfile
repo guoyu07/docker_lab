@@ -1,6 +1,8 @@
 FROM python:2.7
-COPY . /app
+COPY ./requirements.txt /app/requirements.txt 
 WORKDIR /app
-EXPOSE 5000
 RUN pip install -r requirements.txt
+EXPOSE 5000
+COPY . /app
 CMD ["sh", "start-server.sh"]
+#CMD ["python", "server.py"]

@@ -1,5 +1,9 @@
+# -*- coding: utf-8 -*-
+# author: Da Huo
+# email: dh2582@nyu.edu
+
 import os, requests
-from clamd import ClamdNetworkSocket
+# from clamd import ClamdNetworkSocket
 from requests import Session, Request
 from io import BytesIO
 
