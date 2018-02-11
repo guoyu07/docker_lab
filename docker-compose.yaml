@@ -1,0 +1,39 @@
+version: "2.0"
+
+services:
+
+    clam-rest:
+      build:
+          context: ./clamd-rest
+      ports:
+        - "5000:5000"
+      links:
+        - load_balancer
+      environment:
+        CLAMD_HOST: load_balancer
+        CLAMD_PORT: 3310
+
+    clamavd1:
+      image: mkodockx/docker-clamav
+      volumes: 
+        - ./clamd/clamd.conf:/etc/clamav/clamd.conf
+
+    clamavd2:
+      image: mkodockx/docker-clamav
+      volumes: 
+        - ./clamd/clamd.conf:/etc/clamav/clamd.conf
+
+    clamavd3:
+      image: mkodockx/docker-clamav
+      volumes: 
+        - ./clamd/clamd.conf:/etc/clamav/clamd.conf
+
+    load_balancer:
+      image: tekn0ir/nginx-stream
+      volumes:
+        - ./load-balancer/load_balancer.conf:/opt/nginx/conf/nginx.conf
+      links:
+        - clamavd1
+        - clamavd2
+        - clamavd3
+
