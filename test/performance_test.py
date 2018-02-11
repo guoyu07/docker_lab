@@ -3,12 +3,9 @@
 # email: dh2582@nyu.edu
 
 import os, requests, random
-from clamdClient import clamClient
 from locust import HttpLocust, TaskSet, task
 
 SAMPLE_FILE = "samples"
-END_POINT = "http://127.0.0.1:8080/clam/scan"
-ASYNC_END_POINT = "http://127.0.0.1:8080/clam/asyncScan"
 
 samples = []
 
@@ -23,10 +20,10 @@ class UserBehavior(TaskSet):
     @task
     def test_scan(self):
         sample = random.choice(self._samples)
-        r = self.client.post("/clam/asyncScan", files={'file': open(sample, 'rb')})
+        r = self.client.post("/clam/scan", files={'file': open(sample, 'rb')})
 
 class WebsiteUser(HttpLocust):
     task_set = UserBehavior
-    host = "http://127.0.0.1:8080"
+    host = "http://127.0.0.1:5000"
     min_wait = 5000
     max_wait = 9000

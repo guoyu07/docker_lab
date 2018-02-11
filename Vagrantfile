@@ -10,8 +10,8 @@ Vagrant.configure(2) do |config|
       dockerLab.vm.synced_folder "./", "/vagrant", owner: "ubuntu", mount_options: ["dmode=755,fmode=644"]
       dockerLab.vm.provider "virtualbox" do |vb|
         # Customize the amount of memory on the VM:
-        vb.memory = "4096"
-        vb.cpus = 4
+        vb.memory = "8192"
+        vb.cpus = 8
       end
   end
 

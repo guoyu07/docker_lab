@@ -9,9 +9,13 @@ services:
         - "5000:5000"
       links:
         - load_balancer
+        - redis_cache
       environment:
         CLAMD_HOST: load_balancer
         CLAMD_PORT: 3310
+        REDIS_HOST: redis_cache
+        REDIS_PORT: 6379
+
 
     clamavd1:
       image: mkodockx/docker-clamav
@@ -37,3 +41,5 @@ services:
         - clamavd2
         - clamavd3
 
+    redis_cache:
+      image: redis

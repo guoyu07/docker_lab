@@ -2,19 +2,27 @@
 # author: Da Huo
 # email: dh2582@nyu.edu
 
-import os, socket, json, pdb
-from clamd import ClamdNetworkSocket, ConnectionError, BufferTooLongError
+import os, socket, json, redis, hashlib
+from clamdClient import clamClient, ConnectionError
 from flask import Flask, request
 
+from gevent import wsgi
 from gevent.monkey import patch_all
 patch_all()
 
-app = Flask(__name__)
 
-# HOST = "127.0.0.1"
-# PORT = 3310
-HOST = os.environ["CLAMD_HOST"]
-PORT = int(os.environ["CLAMD_PORT"])
+# CLAMD_HOST = "127.0.0.1"
+# CLAMD_PORT = 3310
+CLAMD_HOST = os.environ["CLAMD_HOST"]
+CLAMD_PORT = int(os.environ["CLAMD_PORT"])
+
+# REDIS_HOST = "127.0.0.1"
+# REDIS_PORT = 6379
+REDIS_HOST = os.environ["REDIS_HOST"]
+REDIS_PORT = int(os.environ["REDIS_PORT"])
+
+app = Flask(__name__)
+redis_pool = redis.ConnectionPool(host = REDIS_HOST , port = REDIS_PORT)
 
 class Msg(object):
     def __init__(self):
@@ -23,12 +31,11 @@ class Msg(object):
     def to_string(self):
         return json.dumps(self.__dict__)
 
-
 @app.route('/clam/ping', methods=['GET'])
 def ping():
     ret = Msg()
     try:
-        c = ClamdNetworkSocket(HOST, PORT)
+        c = clamClient(CLAMD_HOST, CLAMD_PORT)
         ret.msg = c.ping()
     except ConnectionError:
         ret.msg = "connection error"
@@ -44,13 +51,19 @@ def upload_file():
     else:
         f = request.files["file"]
         try:
-            c = ClamdNetworkSocket(HOST, PORT)
-            ret.msg = c.instream(f.stream)
+            r = redis.Redis(connection_pool = redis_pool) 
+            data = f.stream.read()
+            file_hash = hashlib.md5(data).hexdigest()
+            if r.exists(file_hash):
+                ret.msg = r.get(file_hash)
+            else:
+                c = clamClient(CLAMD_HOST, CLAMD_PORT)
+                ret.msg = c.stream_scan(data)
+                r.set(file_hash, ret.msg, ex=60)
         except ConnectionError:
             ret.msg = "connection error"
-        except BufferTooLongError:
-            ret.msg = "buffer too long"
     return ret.to_string()
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000)
+    server = wsgi.WSGIServer(('0.0.0.0', 5000), app)
+    server.serve_forever()

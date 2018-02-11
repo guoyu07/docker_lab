@@ -57,6 +57,6 @@ if __name__ == "__main__":
         for filename in files:
             filepath = os.path.join(root, filename)
             samples.append(filepath)
-    test_ping()
+    # test_ping()
     test_scan(samples)
     # test_clamd(samples)
